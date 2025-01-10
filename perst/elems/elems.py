@@ -28,8 +28,6 @@ class Elems:
     See `impl/` for available storages.
     """
 
-    # TODO: custom elem fields for peewee model
-
     def __init__(
             self,
             source: any,
@@ -37,11 +35,13 @@ class Elems:
             id_key: str = 'id',
             id_type: type = str,
             data_key: str = 'data',
+            fields: list[str] = [],
     ):
         self._source = source
         self._id_key = id_key
         self._id_type = id_type
         self._data_key = data_key
+        self._fields = fields
 
         self.init()
 

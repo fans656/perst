@@ -23,10 +23,12 @@ class PeeweeElems(Elems):
     def add(self, elem: dict) -> bool:
         with self.model() as model:
             try:
-                model.create(**{
-                    self._id_key: elem[self._id_key],
-                    self._data_key: json.dumps(elem),
-                })
+                fields = {self._id_key: elem[self._id_key]}
+                if self._data_key:
+                    fields[self._data_key] = json.dumps(elem)
+                for field_name in self._fields:
+                    fields[field_name] = elem.get(field_name)
+                model.create(**fields)
             except:
                 print(elem)
                 import traceback
@@ -47,11 +49,11 @@ class PeeweeElems(Elems):
     def get(self, elem_id):
         with self.model() as M:
             query = M.select(
-                getattr(M, self._data_key)
+                *self.__get_select_fields(M)
             ).where(
                 getattr(M, self._id_key) == elem_id
             ).limit(1)
-            return next((json.loads(getattr(d, self._data_key)) for d in query), None)
+            return next((self.__get_data_from_model(d) for d in query), None)
 
     def __len__(self):
         with self.model() as M:
@@ -61,6 +63,20 @@ class PeeweeElems(Elems):
         # TODO: chunked for performance
         with self.model() as M:
             return (json.loads(getattr(d, self._data_key)) for d in M.select())
+
+    def __get_select_fields(self, Model):
+        if self._data_key:
+            return (getattr(Model, self._data_key),)
+        else:
+            return tuple(
+                getattr(Model, field_name) for field_name in (self._id_key, *self._fields)
+            )
+
+    def __get_data_from_model(self, model):
+        if self._data_key:
+            return json.loads(getattr(model, self._data_key))
+        else:
+            return {key: getattr(model, key) for key in (self._id_key, *self._fields)}
 
 
 def _make_model_by_peewee_model(peewee_model):

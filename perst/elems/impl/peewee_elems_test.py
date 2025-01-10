@@ -69,3 +69,56 @@ class Test_custom_data_key:
                     model = Model.get_or_none('1')
                     assert model.id == '1'
                     assert json.loads(model.meta)['name'] == 'foo'
+
+
+class Test_custom_database_fields:
+    """Can specify extra fields each corresponding to data attribute.
+
+    For example, "name" / "age" fields for {"id": 1, "name": "foo", "age": 35}.
+    """
+
+    def test_default(self, make_elems):
+        class Model(peewee.Model):
+
+            id = peewee.TextField(primary_key=True)
+            name = peewee.TextField(index=True)
+            age = peewee.IntegerField(index=True)
+            data = peewee.TextField()
+
+        elems = make_elems.conf({'model': Model}, fields=['name', 'age'])
+        elems.add({'id': '1', 'name': 'foo', 'age': 35})
+
+        @elems.verify
+        def _():
+            assert elems.get('1') == {'id': '1', 'name': 'foo', 'age': 35}
+
+            if isinstance(elems._elems, PeeweeElems):
+                with elems.model() as Model:
+                    model = Model.get_or_none('1')
+                    assert model.name == 'foo'
+                    assert model.age == 35
+
+
+class Test_no_data_key:
+    """Can specify no data key (so all fields corresponding to database columns).
+    """
+
+    def test_default(self, make_elems):
+        class Model(peewee.Model):
+
+            id = peewee.TextField(primary_key=True)
+            name = peewee.TextField(index=True)
+            age = peewee.IntegerField(index=True)
+
+        elems = make_elems.conf({'model': Model}, data_key=None, fields=['name', 'age'])
+        elems.add({'id': '1', 'name': 'foo', 'age': 35})
+
+        @elems.verify
+        def _():
+            assert elems.get('1') == {'id': '1', 'name': 'foo', 'age': 35}
+
+            if isinstance(elems._elems, PeeweeElems):
+                with elems.model() as Model:
+                    model = Model.get_or_none('1')
+                    assert model.name == 'foo'
+                    assert model.age == 35
