@@ -33,11 +33,14 @@ class Elems:
     def __init__(
             self,
             source: any,
+            *,
             id_key: str = 'id',
+            id_type: type = str,
             data_key: str = 'data',
     ):
         self._source = source
         self._id_key = id_key
+        self._id_type = id_type
         self._data_key = data_key
 
         self.init()

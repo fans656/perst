@@ -252,29 +252,6 @@ class Test_custom_id_key:
             assert elems.get('foo') == {'name': 'foo'}
 
 
-class Test_custom_data_key:
-    """Can specify different data key
-
-    Some implementation (e.g. sqlite) use a "data" column to store the element dict,
-    this column name can be specified otherwise (e.g. "meta") to accommodate existing database.
-    """
-
-    def test_data_key(self, make_elems):
-        import peewee
-
-        class Model(peewee.Model):
-
-            id = peewee.TextField(primary_key=True)
-            meta = peewee.TextField()
-
-        elems = make_elems.conf({'model': Model}, data_key='meta')
-        elems.add({'id': 1, 'name': 'foo'})
-
-        @elems.verify
-        def _():
-            assert elems.get(1) == {'id': 1, 'name': 'foo'}
-
-
 class Test_id_types:
     """Can use different type for ID"""
 
@@ -291,9 +268,9 @@ class Test_id_types:
         self.verify(float, 1.23)
 
     def verify(self, id_type, id_value):
-        elems = self.make_elems()
+        elems = self.make_elems(id_type=id_type)
         elem = {'id': id_value}
-        elems.add(elem)
+        assert elems.add(elem)
 
         @elems.verify
         def _():

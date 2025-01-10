@@ -81,9 +81,9 @@ def _make_model_by_enterable(enterable):
 
     then it can do:
 
-        PeeweeBackend(self.tables('Storage'))
+        PeeweeElems(self.tables('Storage'))
 
-    and PeeweeBackend can use it equivalent to:
+    and PeeweeElems can use it equivalent to:
 
         with self.tables('Storage') as Storage:
             ...
