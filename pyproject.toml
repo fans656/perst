@@ -1,0 +1,14 @@
+[project]
+name = "perst"
+version = "0.1.2"
+description = "Simple persistance library"
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "pytest>=8.3.4",
+]
+
+[dependency-groups]
+dev = [
+    "peewee>=3.17.8",
+]
