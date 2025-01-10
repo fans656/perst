@@ -50,6 +50,15 @@ class Test_init_peewee:
         elems.add({'id': '1'})
         assert database_path.exists()
 
+    def test_func_returning_model(self, tmp_path):
+        """Can use func returning peewee model"""
+        model, database_path = self.make_peewee_model(tmp_path)
+
+        elems = perst.elems(lambda: model)
+
+        elems.add({'id': '1'})
+        assert database_path.exists()
+
     def test_context_manager(self, tmp_path):
         """Can use context manager yielding peewee model"""
         model, database_path = self.make_peewee_model(tmp_path)
@@ -60,6 +69,20 @@ class Test_init_peewee:
 
         # init elems by context manager
         elems = perst.elems(get_model)
+
+        elems.add({'id': '1'})
+        assert database_path.exists()
+
+    def test_func_returning_context_manager(self, tmp_path):
+        """Can use func returning context manager yielding peewee model"""
+        model, database_path = self.make_peewee_model(tmp_path)
+
+        @contextlib.contextmanager
+        def get_model():
+            yield model
+
+        # init elems by func returning context manager
+        elems = perst.elems(lambda: get_model())
 
         elems.add({'id': '1'})
         assert database_path.exists()

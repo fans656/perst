@@ -16,7 +16,7 @@ class PeeweeElems(Elems):
         if isinstance(self._source, peewee.ModelBase):
             self.model = _make_model_by_peewee_model(self._source)
         elif callable(self._source):
-            self.model = _make_model_by_enterable(self._source)
+            self.model = _make_model_by_func(self._source)
         else:
             raise RuntimeError(f'unsupported source {self._source}')
 
@@ -30,9 +30,6 @@ class PeeweeElems(Elems):
                     fields[field_name] = elem.get(field_name)
                 model.create(**fields)
             except:
-                print(elem)
-                import traceback
-                traceback.print_exc()
                 return False
         return True
 
@@ -86,7 +83,7 @@ def _make_model_by_peewee_model(peewee_model):
     return model
 
 
-def _make_model_by_enterable(enterable):
+def _make_model_by_func(func):
     """
     Example: stome sqlite backend is using following
 
@@ -97,7 +94,7 @@ def _make_model_by_enterable(enterable):
 
     then it can do:
 
-        PeeweeElems(self.tables('Storage'))
+        PeeweeElems(lambda: self.tables('Storage'))
 
     and PeeweeElems can use it equivalent to:
 
@@ -106,6 +103,12 @@ def _make_model_by_enterable(enterable):
     """
     @contextlib.contextmanager
     def model():
-        with enterable() as _model:
-            yield _model
+        ret = func()
+        if isinstance(ret, peewee.ModelBase):
+            yield ret
+        elif hasattr(ret, '__enter__'):
+            with ret as _model:
+                yield _model
+        else:
+            raise NotImplementedError()
     return model
