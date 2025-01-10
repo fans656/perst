@@ -23,15 +23,21 @@ class PeeweeElems(Elems):
     def add(self, elem: dict) -> bool:
         with self.model() as model:
             try:
-                model.create(id=elem[self._id_key], data=json.dumps(elem))
+                model.create(**{
+                    self._id_key: elem[self._id_key],
+                    self._data_key: json.dumps(elem),
+                })
             except:
+                print(elem)
+                import traceback
+                traceback.print_exc()
                 return False
         return True
 
     def update_by_elem(self, elem):
         with self.model() as M:
             return M.update({
-                M.data: json.dumps(elem),
+                getattr(M, self._data_key): json.dumps(elem),
             }).where(M.id == elem[self._id_key]).execute() > 0
 
     def remove_by_id(self, elem_id):
@@ -40,8 +46,12 @@ class PeeweeElems(Elems):
 
     def get(self, elem_id):
         with self.model() as M:
-            query = M.select(M.data).where(M.id == elem_id).limit(1)
-            return next((json.loads(d.data) for d in query), None)
+            query = M.select(
+                getattr(M, self._data_key)
+            ).where(
+                getattr(M, self._id_key) == elem_id
+            ).limit(1)
+            return next((json.loads(getattr(d, self._data_key)) for d in query), None)
 
     def __len__(self):
         with self.model() as M:
@@ -50,7 +60,7 @@ class PeeweeElems(Elems):
     def __iter__(self):
         # TODO: chunked for performance
         with self.model() as M:
-            return (json.loads(d.data) for d in M.select())
+            return (json.loads(getattr(d, self._data_key)) for d in M.select())
 
 
 def _make_model_by_peewee_model(peewee_model):

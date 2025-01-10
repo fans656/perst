@@ -34,9 +34,11 @@ class Elems:
             self,
             source: any,
             id_key: str = 'id',
+            data_key: str = 'data',
     ):
         self._source = source
         self._id_key = id_key
+        self._data_key = data_key
 
         self.init()
 

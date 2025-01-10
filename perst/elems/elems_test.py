@@ -232,7 +232,7 @@ class Test_bool:
 
     def test_non_empty(self, make_elems):
         elems = make_elems()
-        elems.add({'id': '1'})
+        assert elems.add({'id': '1'})
 
         @elems.verify
         def _():
@@ -245,11 +245,34 @@ class Test_custom_id_key:
 
     def test_name(self, make_elems):
         elems = make_elems(id_key='name')
-        elems.add({'name': 'foo'})
+        assert elems.add({'name': 'foo'})
 
         @elems.verify
         def _():
             assert elems.get('foo') == {'name': 'foo'}
+
+
+class Test_custom_data_key:
+    """Can specify different data key
+
+    Some implementation (e.g. sqlite) use a "data" column to store the element dict,
+    this column name can be specified otherwise (e.g. "meta") to accommodate existing database.
+    """
+
+    def test_data_key(self, make_elems):
+        import peewee
+
+        class Model(peewee.Model):
+
+            id = peewee.TextField(primary_key=True)
+            meta = peewee.TextField()
+
+        elems = make_elems.conf({'model': Model}, data_key='meta')
+        elems.add({'id': 1, 'name': 'foo'})
+
+        @elems.verify
+        def _():
+            assert elems.get(1) == {'id': 1, 'name': 'foo'}
 
 
 class Test_id_types:
