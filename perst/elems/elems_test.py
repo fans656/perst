@@ -194,7 +194,7 @@ class Test_update:
     @classmethod
     @pytest.fixture()
     def elems(cls, make_elems):
-        elems = make_elems()
+        elems = make_elems(id_type=int)
         elems.add({'id': 1, 'name': 'foo', 'age': 3})
         return elems
 

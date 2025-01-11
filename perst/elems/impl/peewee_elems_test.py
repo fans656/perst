@@ -122,3 +122,28 @@ class Test_no_data_key:
                     model = Model.get_or_none('1')
                     assert model.name == 'foo'
                     assert model.age == 35
+
+
+class Test_autoid:
+
+    def test_default(self, make_elems):
+        elems = make_elems(id_type=int)
+        assert elems.add({'name': 'foo'})
+
+        @elems.verify
+        def _():
+            _elems = list(elems)
+            assert len(_elems) == 1
+
+            _elem = _elems[0]
+            assert _elem == {'id': 1, 'name': 'foo'}
+
+        assert elems.add({'name': 'foo'})
+
+        @elems.verify
+        def _():
+            _elems = list(elems)
+            assert len(_elems) == 2
+
+            _elem = _elems[1]
+            assert _elem == {'id': 2, 'name': 'foo'}

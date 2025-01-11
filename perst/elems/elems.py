@@ -1,3 +1,4 @@
+import uuid
 from typing import Optional
 
 
@@ -47,14 +48,22 @@ class Elems:
 
         self._id_to_elem = self._load()
 
-    def add(self, elem: dict) -> bool:
+    def add(self, elem: dict) -> any:
         """Add an element to the elements.
 
         Returns:
-            True - if successfully added
-            False - if already in the elements
+            element id - if successfully added
+            None - if already in the elements
         """
-        elem_id = elem[self._id_key]
+        if self._id_key in elem:
+            elem_id = elem[self._id_key]
+        elif self._id_type is str:
+            elem_id = elem[self._id_key] = uuid.uuid4()
+        elif self._id_type is int:
+            elem_id = elem[self._id_key] = max(self._id_to_elem.keys() or (0,)) + 1
+        else:
+            raise RuntimeError('unsupported auto id')
+
         if elem_id in self._id_to_elem:
             return False
         else:
