@@ -1,4 +1,5 @@
 import json
+import traceback
 import contextlib
 from typing import Iterable
 
@@ -22,6 +23,9 @@ class PeeweeElems(Elems):
 
     def add(self, elem: dict) -> any:
         with self.model() as model:
+            if model.get_or_none(getattr(model, self._id_key) == elem.get(self._id_key)):
+                return None
+
             if self._id_key in elem:
                 fields = {self._id_key: elem[self._id_key]}
             else:
@@ -33,10 +37,7 @@ class PeeweeElems(Elems):
             for field_name in self._fields:
                 fields[field_name] = elem.get(field_name)
 
-            try:
-                return getattr(model.create(**fields), self._id_key)
-            except:
-                pass
+            return getattr(model.create(**fields), self._id_key)
 
     def update_by_elem(self, elem):
         with self.model() as M:

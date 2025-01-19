@@ -65,11 +65,11 @@ class Elems:
             raise RuntimeError('unsupported auto id')
 
         if elem_id in self._id_to_elem:
-            return False
+            return None
         else:
             self._id_to_elem[elem_id] = elem
             self.dump()
-            return True
+            return elem_id
 
     def update(self, *args) -> bool:
         """Update existing element in the elements.
