@@ -70,6 +70,27 @@ class Test_custom_data_key:
                     assert model.id == '1'
                     assert json.loads(model.meta)['name'] == 'foo'
 
+    def test_meta_and_indexed_fields_stay_in_sync_on_update(self, make_elems):
+        class Model(peewee.Model):
+
+            id = peewee.TextField(primary_key=True)
+            name = peewee.TextField(index=True)
+            meta = peewee.TextField()
+
+        elems = make_elems.conf({'model': Model}, data_key='meta', fields=['name'])
+        elems.add({'id': '1', 'name': 'foo'})
+        elems.update('1', {'name': 'bar'})
+
+        @elems.verify
+        def _():
+            assert elems.get('1') == {'id': '1', 'name': 'bar'}
+
+            if isinstance(elems._elems, PeeweeElems):
+                with elems.model() as Model:
+                    model = Model.get_or_none('1')
+                    assert model.name == 'bar'
+                    assert json.loads(model.meta)['name'] == 'bar'
+
 
 class Test_custom_database_fields:
     """Can specify extra fields each corresponding to data attribute.
@@ -97,6 +118,18 @@ class Test_custom_database_fields:
                     model = Model.get_or_none('1')
                     assert model.name == 'foo'
                     assert model.age == 35
+
+        elems.update('1', {'name': 'baz', 'age': 40})
+
+        @elems.verify
+        def _():
+            assert elems.get('1') == {'id': '1', 'name': 'baz', 'age': 40}
+
+            if isinstance(elems._elems, PeeweeElems):
+                with elems.model() as Model:
+                    model = Model.get_or_none('1')
+                    assert model.name == 'baz'
+                    assert model.age == 40
 
 
 class Test_no_data_key:

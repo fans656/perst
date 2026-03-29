@@ -41,9 +41,19 @@ class PeeweeElems(Elems):
 
     def update_by_elem(self, elem):
         with self.model() as M:
-            return M.update({
-                getattr(M, self._data_key): json.dumps(elem),
-            }).where(M.id == elem[self._id_key]).execute() > 0
+            fields = {}
+            if self._data_key:
+                fields[getattr(M, self._data_key)] = json.dumps(elem)
+            for field_name in self._fields:
+                fields[getattr(M, field_name)] = elem.get(field_name)
+            if not fields:
+                return False
+            return (
+                M.update(fields)
+                .where(getattr(M, self._id_key) == elem[self._id_key])
+                .execute()
+                > 0
+            )
 
     def remove_by_id(self, elem_id):
         with self.model() as M:
